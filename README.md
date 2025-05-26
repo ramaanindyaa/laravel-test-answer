@@ -1,85 +1,98 @@
-# Laravel Skill Test
+# Laravel Post Management System - Implementation Guide
 
-## 1. Overview
+## Overview
 
-Implement RESTful routes for a Post model using Laravel, with support for drafts, scheduled publishing, and user-authenticated operations.
+This project implements a RESTful API for a Post model using Laravel 12, supporting drafts, scheduled publishing, and authenticated operations. The system allows users to create, read, update, and delete blog posts with advanced publishing controls.
 
-## 2. Workflow
+## Features Implemented
 
-1. Set a deadline and let us know. This deadline will depend on your schedule.
-2. Clone this repository and set up the environment.
-3. Change the remote repository to your public repository (do not delete the commit history).
-4. Implement the required features according to the requirements below.
-5. Push your changes to your public repository.
+### Post Status Management
 
-## Specifications
+- **Draft Posts**: Posts can be saved as drafts that aren't publicly visible
+- **Scheduled Posts**: Posts can be scheduled to publish at a future date/time
+- **Published Posts**: Actively published and publicly visible posts
+- **Auto Publishing**: Scheduled posts automatically become published when their publish date arrives
 
-- **Drafts and Scheduling**: Posts can be saved as drafts or scheduled for future publishing.
-- **Scheduled Posts**: Scheduled posts should be published automatically when the publish date comes.
+### Authentication & Authorization
 
-## 3. Requirements
+- Session-based authentication using Laravel's built-in authentication system
+- Authorization rules ensuring only post authors can edit/delete their own posts
+- Public routes for viewing published posts
+- Protected routes requiring authentication for creating/updating posts
 
-### General
+## Setup Instructions
 
-- Implement Laravel best practices.
-- For team development, commit with an appropriate commit size and write suitable commit messages.
-- View file implementations are NOT required. The responses should be JSON or redirects.
+### Prerequisites
 
-### `posts.index` route
+- PHP 8.3+
+- Composer
+- SQLite support
+- Node.js v22.15.0+ (optional, for frontend assets)
 
-- Retrieve a paginated list (20 per page) of active posts.
-- Drafts or scheduled posts should not be included.
-- Response must be in JSON.
+### Installation
 
-### `posts.create` route
+1. **Clone the repository**
 
-- You may skip implementing this route or return the string `posts.create`.
+    ```bash
+    git clone https://github.com/your-username/laravel-skill-test.git
+    cd laravel-skill-test
+    ```
 
-### `posts.store` route
+2. **Install PHP dependencies**
 
-- Only authenticated users can create new posts.
-- Validate submitted data before creating the post.
+    ```bash
+    composer install
+    ```
 
-### `posts.show` route
+3. **Set up the environment file**
 
-- Retrieve a single post.
-- Response must be in JSON.
-- Return 404 if the post is draft or scheduled.
+    ```bash
+    cp .env.example .env
+    ```
 
-### `posts.edit` route
+    Update the `.env` file with your database and app configuration.
 
-- You may skip implementing this route or return the string `posts.edit`.
+4. **Generate application key**
 
-### `posts.update` route
+    ```bash
+    php artisan key:generate
+    ```
 
-- Only the post's author can update the post.
-- Validate submitted data before updating the post.
+5. \*\*Run database migrations and seeders
 
-### `posts.destroy` route
+    ```bash
+    php artisan migrate --seed
+    ```
 
-- Only the post's author can delete the post.
+6. **Install Node.js dependencies and build assets** (optional)
+    ```bash
+    npm install
+    npm run dev
+    ```
 
-### Testing
-- Write feature (HTTP) tests for all posts routes to verify expected behavior, including both successful and failure scenarios.
+### Usage
 
-## 4. Hints
+- **Run the development server**
 
-- The correct implementation should follow Laravel 12’s official documentation (https://laravel.com/docs/12.x). Using outdated or deprecated syntax may be considered incorrect.
-- You can use any references or AI tools, such as Laracasts, Stack Overflow, ChatGPT, Copilot, Cursor, and Devin. However, don't forget to review the official documentation and your code carefully.
-- The `posts` table is already defined in the migration file. Refer to its fields to determine how to structure submitted data and how to identify whether a post is active, a draft, or scheduled.
-- Although these routes behave like an API, you may use Laravel’s built-in session-based (cookie) authentication instead of token-based systems such as Sanctum or Passport.
+    ```bash
+    php artisan serve
+    ```
 
-### Recommended environment
+    Access the API at `http://localhost:8000`.
 
-- PHP 8.3
-- Node v22.15.0
-- Database: SQLite
-- Server: Built-in development server
+- **API Documentation**
+  Refer to the Postman collection included in the repository for detailed API documentation.
 
-### Database Seeding
+## Testing
 
-Seeders create sample data of User and Post.
+Feature tests are included to verify the functionality of the posts routes. To run the tests, use the following command:
 
+```bash
+php artisan test
 ```
-php artisan db:seed
-```
+
+## Acknowledgments
+
+- Laravel 12 Documentation: https://laravel.com/docs/12.x
+- Laravel GitHub Repository: https://github.com/laravel/laravel
+- Postman for API testing and documentation
