@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
@@ -20,80 +23,62 @@ class PostController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
         $posts = Post::published()
             ->with('user')
             ->latest('published_at')
             ->paginate(20);
 
-        return response()->json($posts);
+        return PostResource::collection($posts);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): JsonResponse
     {
-        return 'posts.create'; // Pastikan string literal, bukan view
+        return response()->json(['message' => 'posts.create']);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StorePostRequest $request): PostResource
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'is_draft' => 'boolean',
-            'published_at' => 'nullable|date',
-        ]);
+        $post = Auth::user()->posts()->create($request->validated());
 
-        $post = Auth::user()->posts()->create($validated);
-
-        return response()->json($post, 201);
+        return new PostResource($post->load('user'));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Post $post): JsonResponse
+    public function show(Post $post): PostResource|JsonResponse
     {
-        if ($post->is_draft || ($post->published_at && $post->published_at->isFuture())) {
+        if (! $post->isPublished()) {
             return response()->json(['message' => 'Post not found'], 404);
         }
 
-        return response()->json($post->load('user'));
+        return new PostResource($post->load('user'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Post $post)
+    public function edit(Post $post): JsonResponse
     {
-        return 'posts.edit'; // Pastikan string literal, bukan view
+        return response()->json(['message' => 'posts.edit']);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post): JsonResponse
+    public function update(UpdatePostRequest $request, Post $post): PostResource
     {
-        if (Auth::user()->cannot('update', $post)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $post->update($request->validated());
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'is_draft' => 'boolean',
-            'published_at' => 'nullable|date',
-        ]);
-
-        $post->update($validated);
-
-        return response()->json($post);
+        return new PostResource($post->fresh()->load('user'));
     }
 
     /**
@@ -101,9 +86,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post): JsonResponse
     {
-        if (Auth::user()->cannot('delete', $post)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorize('delete', $post);
 
         $post->delete();
 

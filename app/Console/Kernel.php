@@ -23,7 +23,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // Run every minute to check for posts that need to be published
-        $schedule->command('posts:publish-scheduled')->everyMinute();
+        $schedule->command('posts:publish-scheduled')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
     }
 
     /**

@@ -19,17 +19,21 @@ class Post extends Model
         'user_id',
     ];
 
-    protected $casts = [
-        'is_draft' => 'boolean',
-        'published_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_draft' => 'boolean',
+            'published_at' => 'datetime',
+        ];
+    }
 
+    // Relationships
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // Scope for published posts
+    // Scopes
     public function scopePublished($query)
     {
         return $query->where('is_draft', false)
@@ -37,5 +41,50 @@ class Post extends Model
                 $q->whereNotNull('published_at')
                     ->where('published_at', '<=', now());
             });
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('is_draft', true);
+    }
+
+    public function scopeScheduled($query)
+    {
+        return $query->where('is_draft', false)
+            ->whereNotNull('published_at')
+            ->where('published_at', '>', now());
+    }
+
+    // Helper methods
+    public function isPublished(): bool
+    {
+        return ! $this->is_draft &&
+               $this->published_at &&
+               $this->published_at->isPast();
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->is_draft;
+    }
+
+    public function isScheduled(): bool
+    {
+        return ! $this->is_draft &&
+               $this->published_at &&
+               $this->published_at->isFuture();
+    }
+
+    public function getStatusAttribute(): string
+    {
+        if ($this->isDraft()) {
+            return 'draft';
+        }
+
+        if ($this->isScheduled()) {
+            return 'scheduled';
+        }
+
+        return 'published';
     }
 }
